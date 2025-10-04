@@ -2,10 +2,10 @@ import { Activity } from 'lucide-react';
 
 interface DashboardHeaderProps {
   lastUpdate: Date | null;
-  isLive: boolean;
+  isConnected: boolean;
 }
 
-export const DashboardHeader = ({ lastUpdate, isLive }: DashboardHeaderProps) => {
+export const DashboardHeader = ({ lastUpdate, isConnected }: DashboardHeaderProps) => {
   const formatTime = (date: Date | null) => {
     if (!date) return 'Never';
     return date.toLocaleTimeString();
@@ -24,9 +24,9 @@ export const DashboardHeader = ({ lastUpdate, isLive }: DashboardHeaderProps) =>
           </div>
           
           <div className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2">
-            <div className={`h-2 w-2 rounded-full ${isLive ? 'bg-primary animate-pulse-glow' : 'bg-muted-foreground'}`} />
+            <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse-glow' : 'bg-red-500'}`} />
             <span className="text-sm font-medium text-foreground">
-              {isLive ? 'Live' : 'Offline'}
+              {isConnected ? 'Connected' : 'Disconnected'}
             </span>
             <span className="text-xs text-muted-foreground ml-2">
               Updated: {formatTime(lastUpdate)}
