@@ -1,35 +1,58 @@
 import { useState } from 'react';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { MetricCard } from '@/components/dashboard/MetricCard';
-import { DataDisplay } from '@/components/dashboard/DataDisplay';
+import { WinProbability } from '@/components/dashboard/WinProbability';
+import { WeatherForecast } from '@/components/dashboard/WeatherForecast';
+import { PlayerStats } from '@/components/dashboard/PlayerStats';
+import { Scoreboard } from '@/components/dashboard/Scoreboard';
+import { PitchReport } from '@/components/dashboard/PitchReport';
+import { Clips } from '@/components/dashboard/Clips';
 import { useDataPolling } from '@/hooks/useDataPolling';
-import { BarChart3, TrendingUp, Users, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-// Mock data fetch function - replace this with your actual data source
+// Mock data fetch function - replace this with your actual backend API endpoint
 const fetchCommentaryData = async () => {
-  // Simulate API call
+  // Simulate API call delay
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  // Return mock data - replace with actual API endpoint
+  // Mock data structure - replace with your actual JSON format from backend
   return {
     timestamp: new Date().toISOString(),
-    game: {
-      home: "Yankees",
-      away: "Red Sox",
-      inning: 7,
-      score: { home: 4, away: 3 }
+    winProbability: {
+      team1: { name: "Yankees", probability: 65 },
+      team2: { name: "Red Sox", probability: 35 }
     },
-    commentary: {
-      latest: "Strike three! Another great pitch by the closer.",
-      sentiment: "positive",
-      keywords: ["strike", "closer", "pitch"]
+    weather: {
+      condition: "Sunny",
+      temperature: 28,
+      humidity: 45,
+      windSpeed: 12
     },
-    stats: {
-      totalComments: 1247,
-      engagementRate: 87.3,
-      averageSentiment: 0.72
-    }
+    playerStats: {
+      playerName: "Player 1",
+      stats: [
+        { label: "Runs", value: 45 },
+        { label: "Balls", value: 32 },
+        { label: "Strike Rate", value: "140.62" },
+        { label: "Fours", value: 6 },
+        { label: "Sixes", value: 2 }
+      ]
+    },
+    scoreboard: [
+      { player: "P2", score: 23, balls: 18 },
+      { player: "P3", score: 45, balls: 32 },
+      { player: "P4", score: 12, balls: 15 },
+      { player: "P5", score: 8, balls: 6 }
+    ],
+    pitchReport: {
+      type: "Hard & Bouncy",
+      conditions: "Dry surface, good for batting",
+      analysis: "The pitch is expected to favor batsmen in the first innings with good bounce and carry. Spinners might come into play in the later stages."
+    },
+    clips: [
+      { id: "F1", title: "Amazing Six", duration: "0:15" },
+      { id: "F2", title: "Wicket Fall", duration: "0:22" },
+      { id: "F3", title: "Boundary Shot", duration: "0:18" }
+    ]
   };
 };
 
@@ -67,75 +90,37 @@ const Index = () => {
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <MetricCard title="Total Comments" icon={MessageSquare}>
-                <div className="text-3xl font-bold text-foreground">
-                  {data?.stats?.totalComments || 0}
-                </div>
-              </MetricCard>
-              
-              <MetricCard title="Engagement Rate" icon={TrendingUp}>
-                <div className="text-3xl font-bold text-foreground">
-                  {data?.stats?.engagementRate || 0}%
-                </div>
-              </MetricCard>
-              
-              <MetricCard title="Sentiment Score" icon={BarChart3}>
-                <div className="text-3xl font-bold text-foreground">
-                  {data?.stats?.averageSentiment || 0}
-                </div>
-              </MetricCard>
-              
-              <MetricCard title="Active Users" icon={Users}>
-                <div className="text-3xl font-bold text-foreground">
-                  {Math.floor(Math.random() * 1000) + 500}
-                </div>
-              </MetricCard>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Column */}
+            <div className="lg:col-span-3 space-y-6">
+              <WinProbability data={data?.winProbability} />
+              <WeatherForecast data={data?.weather} />
+              <PitchReport data={data?.pitchReport} />
             </div>
 
-            {/* Main Data Display */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <MetricCard title="Latest Commentary" icon={MessageSquare}>
-                <p className="text-foreground text-base">
-                  {data?.commentary?.latest || "Waiting for commentary..."}
+            {/* Center Column */}
+            <div className="lg:col-span-6 space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1">
+                  <PlayerStats data={data?.playerStats} />
+                </div>
+                <div className="lg:col-span-2">
+                  <Scoreboard data={data?.scoreboard} />
+                </div>
+              </div>
+              <Clips data={data?.clips} />
+            </div>
+
+            {/* Right Column - You can add more components here */}
+            <div className="lg:col-span-3 space-y-6">
+              {/* Additional stats or information can go here */}
+              <div className="p-6 rounded-lg bg-card border border-border">
+                <h3 className="text-lg font-semibold text-foreground mb-3">Additional Info</h3>
+                <p className="text-sm text-muted-foreground">
+                  This space can be used for additional metrics or information from your JSON data.
                 </p>
-                <div className="flex gap-2 mt-3">
-                  {data?.commentary?.keywords?.map((keyword: string, idx: number) => (
-                    <span 
-                      key={idx}
-                      className="px-2 py-1 bg-primary/20 text-primary text-xs rounded"
-                    >
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
-              </MetricCard>
-
-              <MetricCard title="Game Status" icon={BarChart3}>
-                {data?.game ? (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-base">
-                      <span className="text-foreground font-medium">{data.game.away}</span>
-                      <span className="text-foreground font-bold">{data.game.score.away}</span>
-                    </div>
-                    <div className="flex justify-between text-base">
-                      <span className="text-foreground font-medium">{data.game.home}</span>
-                      <span className="text-foreground font-bold">{data.game.score.home}</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-2">Inning: {data.game.inning}</p>
-                  </div>
-                ) : (
-                  <p>No game data available</p>
-                )}
-              </MetricCard>
+              </div>
             </div>
-
-            {/* Raw Data Display */}
-            <MetricCard title="Raw Data Feed" icon={BarChart3}>
-              <DataDisplay data={data} />
-            </MetricCard>
           </div>
         )}
       </main>
