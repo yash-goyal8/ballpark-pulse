@@ -54,4 +54,27 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Smooth transitions for all dashboard updates */
+  .dashboard-card {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .data-value {
+    transition: color 0.3s ease, transform 0.2s ease;
+  }
+
+  .updating .data-value {
+    animation: pulse-value 0.5s ease;
+  }
+
+  @keyframes pulse-value {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
 }
+

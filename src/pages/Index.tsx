@@ -9,6 +9,7 @@ import { PlayerInsightsEnhanced } from '@/components/dashboard/PlayerInsightsEnh
 import { EnvironmentalConditions } from '@/components/dashboard/EnvironmentalConditions';
 import { ClipsGallery } from '@/components/dashboard/ClipsGallery';
 import { ViewModeToggle } from '@/components/dashboard/ViewModeToggle';
+import { ConnectionGuide } from '@/components/dashboard/ConnectionGuide';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useToast } from '@/hooks/use-toast';
 
@@ -91,9 +92,31 @@ interface BaseballData {
 const Index = () => {
   const { toast } = useToast();
   const [viewMode, setViewMode] = useState<'game' | 'analyst' | 'fan'>('game');
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  // TODO: Replace with your WebSocket backend URL
-  // Example: 'ws://localhost:8080' or 'wss://your-backend.com/ws'
+  /* ==========================================
+   * WEBSOCKET CONNECTION SETUP
+   * ==========================================
+   * 
+   * To connect your WebSocket backend:
+   * 
+   * 1. Set WEBSOCKET_URL below to your backend endpoint
+   *    Examples:
+   *    - Local: 'ws://localhost:8080'
+   *    - Production: 'wss://your-backend.com/ws'
+   * 
+   * 2. Your backend should send JSON data every ~7 seconds
+   *    matching the BaseballData interface structure
+   * 
+   * 3. Dashboard will automatically:
+   *    - Connect and reconnect on failures
+   *    - Update all components smoothly
+   *    - Show connection status
+   *    - Fall back to dummy data when disconnected
+   * 
+   * See WEBSOCKET_SETUP.md for detailed instructions
+   * ========================================== */
+  
   const WEBSOCKET_URL = ''; // Leave empty to use dummy data
   
   // WebSocket connection to backend
@@ -201,6 +224,15 @@ const Index = () => {
   // Use WebSocket data if available, otherwise use dummy data
   const displayData = data || dummyData;
 
+  // Show visual feedback when new data arrives
+  useEffect(() => {
+    if (data && lastUpdate) {
+      setIsUpdating(true);
+      const timer = setTimeout(() => setIsUpdating(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [data, lastUpdate]);
+
   // Show error toast when connection fails
   useEffect(() => {
     if (error) {
@@ -212,6 +244,16 @@ const Index = () => {
     }
   }, [error, toast]);
 
+  // Show success toast when connection is established
+  useEffect(() => {
+    if (isConnected && WEBSOCKET_URL) {
+      toast({
+        title: "Connected",
+        description: "Live data stream active",
+      });
+    }
+  }, [isConnected, toast, WEBSOCKET_URL]);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Main Header */}
@@ -222,15 +264,27 @@ const Index = () => {
       />
 
       {/* Sticky Game State Header */}
-      <StickyGameHeader data={displayData?.ctx} />
+      <div className={`transition-all duration-300 ${isUpdating ? 'opacity-50' : 'opacity-100'}`}>
+        <StickyGameHeader data={displayData?.ctx} />
+      </div>
       
       <main className="container mx-auto px-4 lg:px-6 py-6">
         {/* View Mode Toggle */}
         <ViewModeToggle mode={viewMode} onModeChange={setViewMode} />
 
+        {/* Data Update Indicator */}
+        {isUpdating && (
+          <div className="fixed top-20 right-4 z-50 animate-slide-up">
+            <div className="px-4 py-2 rounded-lg bg-primary/10 border border-primary/30 backdrop-blur-sm flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />
+              <span className="text-xs font-semibold text-primary">Updating...</span>
+            </div>
+          </div>
+        )}
+
         {/* Game Mode - Live Commentary Focus */}
         {viewMode === 'game' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className={`grid grid-cols-1 lg:grid-cols-12 gap-6 transition-all duration-300 ${isUpdating ? 'opacity-80' : 'opacity-100'}`}>
             {/* Left Column - Win Probability & Play-by-Play */}
             <div className="lg:col-span-4 space-y-6">
               <WinProbabilityChart 
@@ -256,6 +310,7 @@ const Index = () => {
 
             {/* Right Column - Conditions & Clips */}
             <div className="lg:col-span-3 space-y-6">
+              {!isConnected && !WEBSOCKET_URL && <ConnectionGuide />}
               <EnvironmentalConditions 
                 weather={displayData?.conds?.weather}
                 pitch={displayData?.conds?.pitch}
@@ -267,7 +322,7 @@ const Index = () => {
 
         {/* Analyst Mode - Stats Heavy */}
         {viewMode === 'analyst' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className={`grid grid-cols-1 lg:grid-cols-12 gap-6 transition-all duration-300 ${isUpdating ? 'opacity-80' : 'opacity-100'}`}>
             {/* Left Column */}
             <div className="lg:col-span-4 space-y-6">
               <WinProbabilityChart 
@@ -309,7 +364,7 @@ const Index = () => {
 
         {/* Fan Mode - Fun Graphics & Momentum */}
         {viewMode === 'fan' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className={`grid grid-cols-1 lg:grid-cols-12 gap-6 transition-all duration-300 ${isUpdating ? 'opacity-80' : 'opacity-100'}`}>
             {/* Full Width Momentum */}
             <div className="lg:col-span-12">
               <WinProbabilityChart 
