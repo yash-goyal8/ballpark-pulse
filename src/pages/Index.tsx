@@ -37,10 +37,55 @@ interface CommentaryData {
 const Index = () => {
   const { toast } = useToast();
 
+  // TODO: Replace with your WebSocket backend URL
+  // Example: 'ws://localhost:8080' or 'wss://your-backend.com/ws'
+  const WEBSOCKET_URL = ''; // Leave empty to use dummy data
+  
   // WebSocket connection to backend
   const { data, isConnected, error, lastUpdate } = useWebSocket<CommentaryData>(
-    'ws://localhost:8080'
+    WEBSOCKET_URL
   );
+
+  // Dummy data for development
+  const dummyData: CommentaryData = {
+    winProbability: {
+      team1: { name: "Mumbai Indians", probability: 65 },
+      team2: { name: "Chennai Super Kings", probability: 35 }
+    },
+    weather: {
+      condition: "Sunny",
+      temperature: 28,
+      humidity: 45,
+      windSpeed: 12
+    },
+    playerStats: {
+      playerName: "Rohit Sharma",
+      stats: [
+        { label: "Runs", value: 45 },
+        { label: "Balls", value: 32 },
+        { label: "4s", value: 6 },
+        { label: "6s", value: 2 }
+      ]
+    },
+    scoreboard: [
+      { player: "P2", score: 23, balls: 18 },
+      { player: "P3", score: 45, balls: 32 },
+      { player: "P4", score: 12, balls: 8 }
+    ],
+    pitchReport: {
+      type: "Dry Pitch",
+      conditions: "Good for batting",
+      analysis: "The pitch is offering good bounce and carry. Spinners might get some turn in the later overs."
+    },
+    clips: [
+      { id: "F1", title: "Boundary Shot", duration: "0:15" },
+      { id: "F2", title: "Wicket Fall", duration: "0:12" },
+      { id: "F3", title: "Six Over Long On", duration: "0:18" }
+    ]
+  };
+
+  // Use WebSocket data if available, otherwise use dummy data
+  const displayData = data || dummyData;
 
   // Show error toast when connection fails
   useEffect(() => {
@@ -61,64 +106,38 @@ const Index = () => {
       />
       
       <main className="container mx-auto px-6 py-8">
-        {!isConnected && !data ? (
-          <div className="flex items-center justify-center min-h-[600px]">
-            <div className="text-center max-w-md">
-              <div className="relative mb-6">
-                <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/30 border-t-primary mx-auto" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column */}
+          <div className="lg:col-span-3 space-y-6">
+            <WinProbability data={displayData?.winProbability} />
+            <WeatherForecast data={displayData?.weather} />
+            <PitchReport data={displayData?.pitchReport} />
+          </div>
+
+          {/* Center Column */}
+          <div className="lg:col-span-6 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <PlayerStats data={displayData?.playerStats} />
               </div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">
-                Connecting to Backend
-              </h2>
-              <p className="text-muted-foreground mb-4">
-                Waiting for WebSocket connection at <code className="text-sm bg-secondary px-2 py-1 rounded">ws://localhost:8080</code>
+              <div className="lg:col-span-2">
+                <Scoreboard data={displayData?.scoreboard} />
+              </div>
+            </div>
+            <Clips data={displayData?.clips} />
+            </div>
+
+          {/* Right Column - You can add more components here */}
+          <div className="lg:col-span-3 space-y-6">
+            {/* Additional stats or information can go here */}
+            <div className="p-6 rounded-lg bg-card border border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-3">Additional Info</h3>
+              <p className="text-sm text-muted-foreground">
+                This space can be used for additional metrics or information from your JSON data.
               </p>
-              <div className="bg-card border border-border rounded-lg p-4 text-left">
-                <p className="text-sm text-muted-foreground mb-2">
-                  <strong className="text-foreground">Note:</strong> Make sure your backend server is running
-                </p>
-                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>Backend should be listening on port 8080</li>
-                  <li>WebSocket endpoint should be accessible</li>
-                  <li>Sending JSON data every 7 seconds</li>
-                </ul>
-              </div>
             </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Column */}
-            <div className="lg:col-span-3 space-y-6">
-              <WinProbability data={data?.winProbability} />
-              <WeatherForecast data={data?.weather} />
-              <PitchReport data={data?.pitchReport} />
-            </div>
-
-            {/* Center Column */}
-            <div className="lg:col-span-6 space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1">
-                  <PlayerStats data={data?.playerStats} />
-                </div>
-                <div className="lg:col-span-2">
-                  <Scoreboard data={data?.scoreboard} />
-                </div>
-              </div>
-              <Clips data={data?.clips} />
-            </div>
-
-            {/* Right Column - You can add more components here */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Additional stats or information can go here */}
-              <div className="p-6 rounded-lg bg-card border border-border">
-                <h3 className="text-lg font-semibold text-foreground mb-3">Additional Info</h3>
-                <p className="text-sm text-muted-foreground">
-                  This space can be used for additional metrics or information from your JSON data.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
       </main>
     </div>
   );
