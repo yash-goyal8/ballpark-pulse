@@ -4,18 +4,21 @@ import { Button } from '@/components/ui/button';
 
 interface ClipsProps {
   data?: Array<{
-    id: string;
+    player_id?: number;
     title: string;
-    thumbnail?: string;
-    duration?: string;
+    url?: string;
+    start_s?: number;
+    end_s?: number;
+    source?: string;
+    ts?: string;
   }>;
 }
 
 export const Clips = ({ data }: ClipsProps) => {
   const defaultClips = [
-    { id: 'F1', title: 'Clip 1', duration: '0:00' },
-    { id: 'F2', title: 'Clip 2', duration: '0:00' },
-    { id: 'F3', title: 'Clip 3', duration: '0:00' },
+    { player_id: 0, title: 'Recent Play 1', url: '', source: 'youtube', ts: '' },
+    { player_id: 0, title: 'Recent Play 2', url: '', source: 'youtube', ts: '' },
+    { player_id: 0, title: 'Recent Play 3', url: '', source: 'youtube', ts: '' },
   ];
 
   const clips = data || defaultClips;
@@ -30,23 +33,31 @@ export const Clips = ({ data }: ClipsProps) => {
       </div>
       
       <div className="space-y-3">
-        {clips.map((clip) => (
-          <div 
-            key={clip.id} 
-            className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors group"
-          >
-            <div className="flex-shrink-0 w-16 h-16 rounded bg-muted flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-              <Play className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
+        {clips.map((clip, idx) => {
+          const duration = clip.start_s && clip.end_s ? `${clip.end_s - clip.start_s}s` : '--';
+          return (
+            <div 
+              key={idx} 
+              className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors group"
+            >
+              <div className="flex-shrink-0 w-16 h-16 rounded bg-muted flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                <Play className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">{clip.title}</p>
+                <p className="text-xs text-muted-foreground capitalize">{clip.source} • {duration}</p>
+              </div>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="flex-shrink-0"
+                onClick={() => clip.url && window.open(clip.url, '_blank')}
+              >
+                <Play className="h-4 w-4" />
+              </Button>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground truncate">{clip.title}</p>
-              <p className="text-xs text-muted-foreground">{clip.id} • {clip.duration}</p>
-            </div>
-            <Button size="sm" variant="ghost" className="flex-shrink-0">
-              <Play className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </Card>
   );

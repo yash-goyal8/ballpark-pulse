@@ -1,12 +1,13 @@
 import { Activity } from 'lucide-react';
 
 interface DashboardHeaderProps {
-  lastUpdate: Date | null;
+  lastUpdate?: Date;
   isConnected: boolean;
+  gameId?: string;
 }
 
-export const DashboardHeader = ({ lastUpdate, isConnected }: DashboardHeaderProps) => {
-  const formatTime = (date: Date | null) => {
+export const DashboardHeader = ({ lastUpdate, isConnected, gameId }: DashboardHeaderProps) => {
+  const formatTime = (date?: Date) => {
     if (!date) return 'Never';
     return date.toLocaleTimeString();
   };
@@ -18,8 +19,12 @@ export const DashboardHeader = ({ lastUpdate, isConnected }: DashboardHeaderProp
           <div className="flex items-center gap-3">
             <Activity className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Baseball Commentary Analysis</h1>
-              <p className="text-sm text-muted-foreground">Real-time game insights</p>
+              <h1 className="text-2xl font-bold text-foreground">Baseball Analytics</h1>
+              {gameId ? (
+                <p className="text-sm text-muted-foreground">{gameId}</p>
+              ) : (
+                <p className="text-sm text-muted-foreground">Real-time game insights</p>
+              )}
             </div>
           </div>
           
