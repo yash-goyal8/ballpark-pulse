@@ -62,10 +62,27 @@ const Index = () => {
       
       <main className="container mx-auto px-6 py-8">
         {!isConnected && !data ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-              <p className="text-muted-foreground">Connecting to backend...</p>
+          <div className="flex items-center justify-center min-h-[600px]">
+            <div className="text-center max-w-md">
+              <div className="relative mb-6">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/30 border-t-primary mx-auto" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">
+                Connecting to Backend
+              </h2>
+              <p className="text-muted-foreground mb-4">
+                Waiting for WebSocket connection at <code className="text-sm bg-secondary px-2 py-1 rounded">ws://localhost:8080</code>
+              </p>
+              <div className="bg-card border border-border rounded-lg p-4 text-left">
+                <p className="text-sm text-muted-foreground mb-2">
+                  <strong className="text-foreground">Note:</strong> Make sure your backend server is running
+                </p>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Backend should be listening on port 8080</li>
+                  <li>WebSocket endpoint should be accessible</li>
+                  <li>Sending JSON data every 7 seconds</li>
+                </ul>
+              </div>
             </div>
           </div>
         ) : (
