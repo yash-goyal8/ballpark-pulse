@@ -1,15 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { WinProbability } from '@/components/dashboard/WinProbability';
-import { WeatherForecast } from '@/components/dashboard/WeatherForecast';
-import { GameContext } from '@/components/dashboard/GameContext';
-import { BatterStats } from '@/components/dashboard/BatterStats';
-import { Scoreboard } from '@/components/dashboard/Scoreboard';
-import { PitchConditions } from '@/components/dashboard/PitchConditions';
-import { PitchSuggestion } from '@/components/dashboard/PitchSuggestion';
-import { Predictions } from '@/components/dashboard/Predictions';
-import { Clips } from '@/components/dashboard/Clips';
-import { PlayerInsights } from '@/components/dashboard/PlayerInsights';
+import { StickyGameHeader } from '@/components/dashboard/StickyGameHeader';
+import { WinProbabilityChart } from '@/components/dashboard/WinProbabilityChart';
+import { PlayByPlayFeed } from '@/components/dashboard/PlayByPlayFeed';
+import { AtBatPredictionCards } from '@/components/dashboard/AtBatPredictionCards';
+import { PitchSuggestionEnhanced } from '@/components/dashboard/PitchSuggestionEnhanced';
+import { PlayerInsightsEnhanced } from '@/components/dashboard/PlayerInsightsEnhanced';
+import { EnvironmentalConditions } from '@/components/dashboard/EnvironmentalConditions';
+import { ClipsGallery } from '@/components/dashboard/ClipsGallery';
+import { ViewModeToggle } from '@/components/dashboard/ViewModeToggle';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useToast } from '@/hooks/use-toast';
 
@@ -91,6 +90,7 @@ interface BaseballData {
 
 const Index = () => {
   const { toast } = useToast();
+  const [viewMode, setViewMode] = useState<'game' | 'analyst' | 'fan'>('game');
 
   // TODO: Replace with your WebSocket backend URL
   // Example: 'ws://localhost:8080' or 'wss://your-backend.com/ws'
@@ -214,74 +214,142 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Main Header */}
       <DashboardHeader 
         lastUpdate={lastUpdate} 
         isConnected={isConnected}
         gameId={displayData?.meta?.game_id}
       />
+
+      {/* Sticky Game State Header */}
+      <StickyGameHeader data={displayData?.ctx} />
       
       <main className="container mx-auto px-4 lg:px-6 py-6">
-        {/* Game Context Banner */}
-        <div className="mb-6">
-          <GameContext data={displayData?.ctx} />
-        </div>
+        {/* View Mode Toggle */}
+        <ViewModeToggle mode={viewMode} onModeChange={setViewMode} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
-          {/* Left Column - Predictions & Context */}
-          <div className="lg:col-span-3 space-y-4">
-            <WinProbability 
-              data={{
-                team1: { 
-                  name: displayData?.ctx?.away_team || "Away", 
-                  probability: (displayData?.preds?.wp_now || 0.5) * 100 
-                },
-                team2: { 
-                  name: displayData?.ctx?.home_team || "Home", 
-                  probability: (1 - (displayData?.preds?.wp_now || 0.5)) * 100 
-                }
-              }} 
-            />
-            <Predictions data={displayData?.preds} />
-            <WeatherForecast data={displayData?.conds?.weather} />
-            <PitchConditions data={displayData?.conds?.pitch} />
-          </div>
-
-          {/* Center Column - Main Action */}
-          <div className="lg:col-span-6 space-y-4">
-            <Scoreboard data={displayData?.ctx} />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <BatterStats 
-                batter={displayData?.ctx?.batter}
-                past={displayData?.past}
+        {/* Game Mode - Live Commentary Focus */}
+        {viewMode === 'game' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Column - Win Probability & Play-by-Play */}
+            <div className="lg:col-span-4 space-y-6">
+              <WinProbabilityChart 
+                data={{
+                  team1: { 
+                    name: displayData?.ctx?.away_team || "Away", 
+                    probability: (displayData?.preds?.wp_now || 0.5) * 100 
+                  },
+                  team2: { 
+                    name: displayData?.ctx?.home_team || "Home", 
+                    probability: (1 - (displayData?.preds?.wp_now || 0.5)) * 100 
+                  }
+                }} 
               />
-              <PitchSuggestion data={displayData?.suggest} />
+              <PlayByPlayFeed text={displayData?.text} />
             </div>
 
-            <PlayerInsights data={displayData?.ins} />
-            <Clips data={displayData?.clips} />
-          </div>
-
-          {/* Right Column - Additional Info */}
-          <div className="lg:col-span-3 space-y-4">
-            <div className="p-6 rounded-lg bg-card border border-border">
-              <h3 className="text-lg font-semibold text-foreground mb-3">Live Commentary</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {displayData?.text || "Game commentary will appear here during live action."}
-              </p>
+            {/* Center Column - Predictions & Suggestions */}
+            <div className="lg:col-span-5 space-y-6">
+              <AtBatPredictionCards data={displayData?.preds} />
+              <PitchSuggestionEnhanced data={displayData?.suggest} />
             </div>
-            
-            {displayData?.meta && (
-              <div className="p-4 rounded-lg bg-secondary/50 border border-border">
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Data Info</h4>
-                <div className="space-y-1 text-xs text-foreground">
-                  <p>Sequence: #{displayData.meta.seq_no}</p>
-                  <p>Version: {displayData.version}</p>
-                </div>
-              </div>
-            )}
+
+            {/* Right Column - Conditions & Clips */}
+            <div className="lg:col-span-3 space-y-6">
+              <EnvironmentalConditions 
+                weather={displayData?.conds?.weather}
+                pitch={displayData?.conds?.pitch}
+              />
+              <ClipsGallery data={displayData?.clips} />
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Analyst Mode - Stats Heavy */}
+        {viewMode === 'analyst' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Column */}
+            <div className="lg:col-span-4 space-y-6">
+              <WinProbabilityChart 
+                data={{
+                  team1: { 
+                    name: displayData?.ctx?.away_team || "Away", 
+                    probability: (displayData?.preds?.wp_now || 0.5) * 100 
+                  },
+                  team2: { 
+                    name: displayData?.ctx?.home_team || "Home", 
+                    probability: (1 - (displayData?.preds?.wp_now || 0.5)) * 100 
+                  }
+                }} 
+              />
+              <AtBatPredictionCards data={displayData?.preds} />
+            </div>
+
+            {/* Center Column */}
+            <div className="lg:col-span-5 space-y-6">
+              <PlayerInsightsEnhanced 
+                data={displayData?.ins}
+                past={displayData?.past}
+                batter={displayData?.ctx?.batter}
+                pitcher={displayData?.ctx?.pitcher}
+              />
+              <PitchSuggestionEnhanced data={displayData?.suggest} />
+            </div>
+
+            {/* Right Column */}
+            <div className="lg:col-span-3 space-y-6">
+              <EnvironmentalConditions 
+                weather={displayData?.conds?.weather}
+                pitch={displayData?.conds?.pitch}
+              />
+              <PlayByPlayFeed text={displayData?.text} />
+            </div>
+          </div>
+        )}
+
+        {/* Fan Mode - Fun Graphics & Momentum */}
+        {viewMode === 'fan' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Full Width Momentum */}
+            <div className="lg:col-span-12">
+              <WinProbabilityChart 
+                data={{
+                  team1: { 
+                    name: displayData?.ctx?.away_team || "Away", 
+                    probability: (displayData?.preds?.wp_now || 0.5) * 100 
+                  },
+                  team2: { 
+                    name: displayData?.ctx?.home_team || "Home", 
+                    probability: (1 - (displayData?.preds?.wp_now || 0.5)) * 100 
+                  }
+                }} 
+              />
+            </div>
+
+            {/* Left Column */}
+            <div className="lg:col-span-6 space-y-6">
+              <AtBatPredictionCards data={displayData?.preds} />
+              <ClipsGallery data={displayData?.clips} />
+            </div>
+
+            {/* Right Column */}
+            <div className="lg:col-span-6 space-y-6">
+              <PitchSuggestionEnhanced data={displayData?.suggest} />
+              <PlayByPlayFeed text={displayData?.text} />
+            </div>
+          </div>
+        )}
+
+        {/* Data Info Footer */}
+        {displayData?.meta && (
+          <div className="mt-6 p-4 rounded-lg bg-secondary/30 border border-border">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Sequence: #{displayData.meta.seq_no}</span>
+              <span>Version: {displayData.version}</span>
+              <span>Game ID: {displayData.meta.game_id}</span>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
