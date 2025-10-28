@@ -14,26 +14,67 @@ export const WinProbabilityChart = ({ data }: WinProbabilityChartProps) => {
   
   const team1Prob = data?.team1?.probability || 50;
   const team2Prob = data?.team2?.probability || 50;
+  
+  // Gamification: Determine leader and advantage
+  const leader = team1Prob > team2Prob ? 'team1' : 'team2';
+  const advantagePercent = Math.abs(team1Prob - team2Prob);
+  const advantageLevel = advantagePercent > 30 ? 'dominant' : advantagePercent > 15 ? 'strong' : advantagePercent > 5 ? 'slight' : 'even';
+  
+  const getAdvantageColor = () => {
+    if (advantageLevel === 'dominant') return 'text-green-500';
+    if (advantageLevel === 'strong') return 'text-blue-500';
+    if (advantageLevel === 'slight') return 'text-yellow-500';
+    return 'text-muted-foreground';
+  };
+  
+  const getAdvantageText = () => {
+    if (advantageLevel === 'dominant') return '🔥 DOMINANT';
+    if (advantageLevel === 'strong') return '💪 STRONG LEAD';
+    if (advantageLevel === 'slight') return '⚡ SLIGHT EDGE';
+    return '⚖️ BALANCED';
+  };
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-card to-card/80 border-border">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <TrendingUp className="h-5 w-5 text-primary" />
+    <Card className="p-6 bg-gradient-to-br from-card via-card to-card/80 border-2 border-primary/20 shadow-xl hover:shadow-2xl transition-all">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10 animate-pulse">
+            <TrendingUp className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-foreground">Win Probability</h3>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider">Live Momentum Tracker</p>
+          </div>
         </div>
-        <h3 className="text-lg font-semibold text-foreground">Win Probability</h3>
+        
+        {/* Gamification: Advantage Indicator */}
+        <div className={`text-center ${getAdvantageColor()}`}>
+          <div className="text-2xl font-bold">{advantagePercent.toFixed(1)}%</div>
+          <div className="text-xs font-semibold">{getAdvantageText()}</div>
+        </div>
       </div>
       
       <div className="space-y-6">
         {/* Team 1 */}
         <div 
-          className="space-y-2 relative"
+          className="space-y-2 relative transition-all duration-300"
           onMouseEnter={() => setHoveredBar('team1')}
           onMouseLeave={() => setHoveredBar(null)}
         >
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-foreground font-medium">{data?.team1?.name || 'Team 1'}</span>
-            <span className="text-primary font-bold text-lg">{team1Prob.toFixed(1)}%</span>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <span className="text-base font-bold text-foreground">
+                {data?.team1?.name || 'Team 1'}
+              </span>
+              {leader === 'team1' && advantageLevel !== 'even' && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-bold animate-pulse">
+                  LEADING
+                </span>
+              )}
+            </div>
+            <span className={`text-2xl font-bold transition-all ${hoveredBar === 'team1' ? 'scale-110' : ''} ${team1Prob > team2Prob ? 'text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]' : 'text-foreground'}`}>
+              {team1Prob.toFixed(1)}%
+            </span>
           </div>
           <div className="relative w-full bg-secondary rounded-full h-4 overflow-hidden">
             <div 
@@ -56,13 +97,24 @@ export const WinProbabilityChart = ({ data }: WinProbabilityChartProps) => {
 
         {/* Team 2 */}
         <div 
-          className="space-y-2 relative"
+          className="space-y-2 relative transition-all duration-300"
           onMouseEnter={() => setHoveredBar('team2')}
           onMouseLeave={() => setHoveredBar(null)}
         >
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-foreground font-medium">{data?.team2?.name || 'Team 2'}</span>
-            <span className="text-primary font-bold text-lg">{team2Prob.toFixed(1)}%</span>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <span className="text-base font-bold text-foreground">
+                {data?.team2?.name || 'Team 2'}
+              </span>
+              {leader === 'team2' && advantageLevel !== 'even' && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-bold animate-pulse">
+                  LEADING
+                </span>
+              )}
+            </div>
+            <span className={`text-2xl font-bold transition-all ${hoveredBar === 'team2' ? 'scale-110' : ''} ${team2Prob > team1Prob ? 'text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]' : 'text-foreground'}`}>
+              {team2Prob.toFixed(1)}%
+            </span>
           </div>
           <div className="relative w-full bg-secondary rounded-full h-4 overflow-hidden">
             <div 

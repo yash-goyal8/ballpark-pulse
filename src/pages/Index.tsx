@@ -8,7 +8,6 @@ import { PitchSuggestionEnhanced } from '@/components/dashboard/PitchSuggestionE
 import { PlayerInsightsEnhanced } from '@/components/dashboard/PlayerInsightsEnhanced';
 import { EnvironmentalConditions } from '@/components/dashboard/EnvironmentalConditions';
 import { ClipsGallery } from '@/components/dashboard/ClipsGallery';
-import { ViewModeToggle } from '@/components/dashboard/ViewModeToggle';
 import { ConnectionGuide } from '@/components/dashboard/ConnectionGuide';
 import { useDataPolling } from '@/hooks/useDataPolling';
 import { useToast } from '@/hooks/use-toast';
@@ -91,7 +90,6 @@ interface BaseballData {
 
 const Index = () => {
   const { toast } = useToast();
-  const [viewMode, setViewMode] = useState<'game' | 'analyst' | 'fan'>('game');
   const [isUpdating, setIsUpdating] = useState(false);
 
   /* ==========================================
@@ -280,131 +278,70 @@ const Index = () => {
       </div>
       
       <main className="container mx-auto px-4 lg:px-6 py-6">
-        {/* View Mode Toggle */}
-        <ViewModeToggle mode={viewMode} onModeChange={setViewMode} />
-
         {/* Data Update Indicator */}
         {isUpdating && (
-          <div className="fixed top-20 right-4 z-50 animate-slide-up">
+          <div className="fixed top-20 right-4 z-50 animate-fade-in">
             <div className="px-4 py-2 rounded-lg bg-primary/10 border border-primary/30 backdrop-blur-sm flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />
-              <span className="text-xs font-semibold text-primary">Updating...</span>
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-xs font-semibold text-primary">Live Update</span>
             </div>
           </div>
         )}
 
-        {/* Game Mode - Live Commentary Focus */}
-        {viewMode === 'game' && (
-          <div className={`grid grid-cols-1 lg:grid-cols-12 gap-6 transition-all duration-300 ${isUpdating ? 'opacity-80' : 'opacity-100'}`}>
-            {/* Left Column - Win Probability & Play-by-Play */}
-            <div className="lg:col-span-4 space-y-6">
-              <WinProbabilityChart 
-                data={{
-                  team1: { 
-                    name: displayData?.ctx?.away_team || "Away", 
-                    probability: (displayData?.preds?.wp_now || 0.5) * 100 
-                  },
-                  team2: { 
-                    name: displayData?.ctx?.home_team || "Home", 
-                    probability: (1 - (displayData?.preds?.wp_now || 0.5)) * 100 
-                  }
-                }} 
-              />
-              <PlayByPlayFeed text={displayData?.text} />
-            </div>
+        <div className={`space-y-6 transition-all duration-300 ${isUpdating ? 'opacity-90' : 'opacity-100'}`}>
+          {/* Hero Section - Win Probability */}
+          <div className="animate-fade-in">
+            <WinProbabilityChart 
+              data={{
+                team1: { 
+                  name: displayData?.ctx?.away_team || "Away", 
+                  probability: (displayData?.preds?.wp_now || 0.5) * 100 
+                },
+                team2: { 
+                  name: displayData?.ctx?.home_team || "Home", 
+                  probability: (1 - (displayData?.preds?.wp_now || 0.5)) * 100 
+                }
+              }} 
+            />
+          </div>
 
-            {/* Center Column - Predictions & Suggestions */}
-            <div className="lg:col-span-5 space-y-6">
-              <AtBatPredictionCards data={displayData?.preds} />
-              <PitchSuggestionEnhanced data={displayData?.suggest} />
-            </div>
+          {/* Priority 1: At-Bat Predictions & Pitch Suggestion */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <AtBatPredictionCards data={displayData?.preds} />
+            <PitchSuggestionEnhanced data={displayData?.suggest} />
+          </div>
 
-            {/* Right Column - Conditions & Clips */}
-            <div className="lg:col-span-3 space-y-6">
+          {/* Priority 2: Player Insights */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <PlayerInsightsEnhanced 
+              data={displayData?.ins}
+              past={displayData?.past}
+              batter={displayData?.ctx?.batter}
+              pitcher={displayData?.ctx?.pitcher}
+            />
+          </div>
+
+          {/* Priority 3: Conditions & Activity Feed */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <div className="lg:col-span-1">
               {!isConnected && !API_URL && <ConnectionGuide />}
               <EnvironmentalConditions
                 weather={displayData?.conds?.weather}
                 pitch={displayData?.conds?.pitch}
               />
-              <ClipsGallery data={displayData?.clips} />
             </div>
-          </div>
-        )}
-
-        {/* Analyst Mode - Stats Heavy */}
-        {viewMode === 'analyst' && (
-          <div className={`grid grid-cols-1 lg:grid-cols-12 gap-6 transition-all duration-300 ${isUpdating ? 'opacity-80' : 'opacity-100'}`}>
-            {/* Left Column */}
-            <div className="lg:col-span-4 space-y-6">
-              <WinProbabilityChart 
-                data={{
-                  team1: { 
-                    name: displayData?.ctx?.away_team || "Away", 
-                    probability: (displayData?.preds?.wp_now || 0.5) * 100 
-                  },
-                  team2: { 
-                    name: displayData?.ctx?.home_team || "Home", 
-                    probability: (1 - (displayData?.preds?.wp_now || 0.5)) * 100 
-                  }
-                }} 
-              />
-              <AtBatPredictionCards data={displayData?.preds} />
-            </div>
-
-            {/* Center Column */}
-            <div className="lg:col-span-5 space-y-6">
-              <PlayerInsightsEnhanced 
-                data={displayData?.ins}
-                past={displayData?.past}
-                batter={displayData?.ctx?.batter}
-                pitcher={displayData?.ctx?.pitcher}
-              />
-              <PitchSuggestionEnhanced data={displayData?.suggest} />
-            </div>
-
-            {/* Right Column */}
-            <div className="lg:col-span-3 space-y-6">
-              <EnvironmentalConditions 
-                weather={displayData?.conds?.weather}
-                pitch={displayData?.conds?.pitch}
-              />
+            <div className="lg:col-span-2">
               <PlayByPlayFeed text={displayData?.text} />
             </div>
           </div>
-        )}
 
-        {/* Fan Mode - Fun Graphics & Momentum */}
-        {viewMode === 'fan' && (
-          <div className={`grid grid-cols-1 lg:grid-cols-12 gap-6 transition-all duration-300 ${isUpdating ? 'opacity-80' : 'opacity-100'}`}>
-            {/* Full Width Momentum */}
-            <div className="lg:col-span-12">
-              <WinProbabilityChart 
-                data={{
-                  team1: { 
-                    name: displayData?.ctx?.away_team || "Away", 
-                    probability: (displayData?.preds?.wp_now || 0.5) * 100 
-                  },
-                  team2: { 
-                    name: displayData?.ctx?.home_team || "Home", 
-                    probability: (1 - (displayData?.preds?.wp_now || 0.5)) * 100 
-                  }
-                }} 
-              />
-            </div>
-
-            {/* Left Column */}
-            <div className="lg:col-span-6 space-y-6">
-              <AtBatPredictionCards data={displayData?.preds} />
+          {/* Priority 4: Video Clips */}
+          {displayData?.clips && displayData.clips.length > 0 && (
+            <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
               <ClipsGallery data={displayData?.clips} />
             </div>
-
-            {/* Right Column */}
-            <div className="lg:col-span-6 space-y-6">
-              <PitchSuggestionEnhanced data={displayData?.suggest} />
-              <PlayByPlayFeed text={displayData?.text} />
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Data Info Footer */}
         {displayData?.meta && (
