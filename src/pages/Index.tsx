@@ -123,7 +123,7 @@ const Index = () => {
    * See WEBSOCKET_SETUP.md for detailed instructions
    * ========================================== */
   
-  const API_URL = ''; // Leave empty to use dummy data
+  const API_URL = 'http://localhost:8000/api/game-data'; // Test API server
   const POLLING_INTERVAL = 7000; // 7 seconds
   
   // API polling connection to backend

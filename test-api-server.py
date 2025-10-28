@@ -120,9 +120,13 @@ async def get_game_data():
             "pitcher_strengths": ["Sinker induces weak contact", "Changeup effective vs LHB"],
             "pitcher_weaknesses": ["Struggles in high counts", "Hangs sliders when tired"]
         },
+        "pos": {
+            "defense_shift": random.choice(["standard", "pull", "oppo", "infield_in"]),
+            "note": "Shifted for pull tendency" if random.random() > 0.7 else ""
+        },
         "suggest": {
-            "pitch": random.choice(["four-seam", "slider", "changeup", "sinker", "cutter"]),
-            "location": random.choice(["up-away", "down-away", "mid-in", "down-middle"]),
+            "pitch": random.choice(["four-seam", "slider", "changeup", "sinker", "cutter", "splitter"]),
+            "location": random.choice(["up-away", "down-away", "mid-in", "down-middle", "up-in"]),
             "confidence": round(0.6 + random.random() * 0.3, 2),
             "why": "Batter struggles with this pitch-location combo in similar counts"
         },
@@ -148,16 +152,32 @@ async def get_game_data():
                 "ts": "2025-09-15T19:22:00Z"
             }
         ],
-        "text": f"Count {game_state['count_balls']}-{game_state['count_strikes']}, {game_state['outs']} out{'s' if game_state['outs'] != 1 else ''} in inning {game_state['inning']}"
+        "facts": [
+            f"Batter hitting .{random.randint(250, 350)} vs RHP this season (PA {random.randint(150, 300)})",
+            f"Pitcher allows {round(random.random() * 2 + 2, 2)} ER/9 in last 5 starts"
+        ],
+        "text": f"Count {game_state['count_balls']}-{game_state['count_strikes']}, {game_state['outs']} out{'s' if game_state['outs'] != 1 else ''} in inning {game_state['inning']}. {random.choice(['Fastball high', 'Breaking ball low', 'Change outside', 'Slider away'])}",
+        "flags": {
+            "small_sample": random.random() > 0.7,
+            "grounded_numbers_only": True
+        }
     }
     
     return {
         "timestamp": datetime.utcnow().isoformat(),
+        "original_data": {
+            "timestamp": f"00:{random.randint(10, 59)}:{random.randint(10, 59)}",
+            "text": game_data["text"],
+            "index": game_state["seq_no"],
+            "total": 2477,
+            "stream_speed": 1.0,
+            "match_time": game_state["seq_no"] * 7.0
+        },
         "llm_response": game_data,
+        "processing_time_seconds": round(random.random() * 0.01, 6),
         "success": True,
         "error": None,
-        "processing_time_seconds": 0.001,
-        "processed_count": 1,
+        "processed_count": game_state["seq_no"],
         "failed_count": 0
     }
 
