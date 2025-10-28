@@ -9,6 +9,10 @@ import { PlayerInsightsEnhanced } from '@/components/dashboard/PlayerInsightsEnh
 import { EnvironmentalConditions } from '@/components/dashboard/EnvironmentalConditions';
 import { ClipsGallery } from '@/components/dashboard/ClipsGallery';
 import { ConnectionGuide } from '@/components/dashboard/ConnectionGuide';
+import { StrikeZoneHeatMap } from '@/components/dashboard/StrikeZoneHeatMap';
+import { PitchSequence } from '@/components/dashboard/PitchSequence';
+import { RunExpectancyMatrix } from '@/components/dashboard/RunExpectancyMatrix';
+import { MomentumChart } from '@/components/dashboard/MomentumChart';
 import { useDataPolling } from '@/hooks/useDataPolling';
 import { useToast } from '@/hooks/use-toast';
 
@@ -311,8 +315,14 @@ const Index = () => {
             <PitchSuggestionEnhanced data={displayData?.suggest} />
           </div>
 
-          {/* Priority 2: Player Insights */}
-          <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          {/* Priority 2: Advanced Analytics Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <StrikeZoneHeatMap />
+            <PitchSequence data={{ count: displayData?.ctx?.count }} />
+          </div>
+
+          {/* Priority 3: Player Insights */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
             <PlayerInsightsEnhanced 
               data={displayData?.ins}
               past={displayData?.past}
@@ -321,8 +331,14 @@ const Index = () => {
             />
           </div>
 
-          {/* Priority 3: Conditions & Activity Feed */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          {/* Priority 4: Momentum & Run Expectancy */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <MomentumChart />
+            <RunExpectancyMatrix data={{ currentRE: displayData?.preds?.re_delta_if_reach }} />
+          </div>
+
+          {/* Priority 5: Conditions & Activity Feed */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in" style={{ animationDelay: '0.5s' }}>
             <div className="lg:col-span-1">
               {!isConnected && !API_URL && <ConnectionGuide />}
               <EnvironmentalConditions
@@ -335,9 +351,9 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Priority 4: Video Clips */}
+          {/* Priority 6: Video Clips */}
           {displayData?.clips && displayData.clips.length > 0 && (
-            <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
               <ClipsGallery data={displayData?.clips} />
             </div>
           )}
