@@ -1,15 +1,15 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Wifi, Code, Zap } from 'lucide-react';
+import { WifiOff, Code, Zap } from 'lucide-react';
 
 export const ConnectionGuide = () => {
   return (
     <Card className="p-6 bg-gradient-to-br from-card to-card/80 border-primary/30">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 rounded-lg bg-primary/10">
-          <Wifi className="h-5 w-5 text-primary" />
+          <WifiOff className="h-5 w-5 text-primary" />
         </div>
-        <h3 className="text-lg font-semibold text-foreground">WebSocket Connection Setup</h3>
+        <h3 className="text-lg font-semibold text-foreground">API Connection Setup</h3>
         <Badge variant="outline" className="ml-auto">Demo Mode</Badge>
       </div>
 
@@ -35,7 +35,7 @@ export const ConnectionGuide = () => {
             <div className="flex items-start gap-2">
               <span className="text-xs font-mono text-primary">2.</span>
               <p className="text-xs text-foreground">
-                Find the <code className="px-2 py-0.5 rounded bg-muted text-primary font-mono">WEBSOCKET_URL</code> constant
+                Find the <code className="px-2 py-0.5 rounded bg-muted text-primary font-mono">API_URL</code> constant
               </p>
             </div>
             <div className="flex items-start gap-2">
@@ -45,8 +45,11 @@ export const ConnectionGuide = () => {
               </p>
             </div>
             <div className="mt-2 p-3 rounded bg-muted border border-border">
-              <code className="text-xs font-mono text-primary">
-                const WEBSOCKET_URL = 'ws://localhost:8080';
+              <code className="text-xs font-mono text-primary block">
+                const API_URL = 'http://localhost:8000/api/game-data';
+              </code>
+              <code className="text-xs font-mono text-primary block mt-1">
+                const POLLING_INTERVAL = 7000; // 7 seconds
               </code>
             </div>
           </div>
@@ -60,7 +63,7 @@ export const ConnectionGuide = () => {
               <ul className="space-y-2 text-xs text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span>Send JSON data every ~7 seconds matching the AgentInsight schema</span>
+                  <span>Return JSON with llm_response containing AgentInsight data</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
@@ -68,7 +71,7 @@ export const ConnectionGuide = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span>Dashboard will automatically update with smooth transitions</span>
+                  <span>Dashboard will poll your API every 7 seconds and auto-update</span>
                 </li>
               </ul>
             </div>

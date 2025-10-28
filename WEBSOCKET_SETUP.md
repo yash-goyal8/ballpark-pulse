@@ -1,192 +1,259 @@
-# WebSocket Setup Guide
+# API Polling Setup Guide
 
-This dashboard is designed to receive live updates via WebSocket connection. Here's how to connect your backend.
+This dashboard uses HTTP polling to receive live baseball game data from your backend API. Follow this guide to connect your backend.
 
-## Quick Setup
+## Quick Start
 
-1. **Set the WebSocket URL**
-   - Open `src/pages/Index.tsx`
-   - Find the `WEBSOCKET_URL` constant (around line 99)
-   - Replace the empty string with your backend URL:
-   
+1. **Set your API URL** in `src/pages/Index.tsx`:
    ```typescript
-   const WEBSOCKET_URL = 'ws://localhost:8080';
-   // or for production:
-   const WEBSOCKET_URL = 'wss://your-backend.com/ws';
+   const API_URL = 'http://localhost:8000/api/game-data'; // or your production URL
    ```
 
-2. **Backend Requirements**
+2. **Configure polling interval** (optional):
+   ```typescript
+   const POLLING_INTERVAL = 7000; // 7 seconds (default)
+   ```
 
-   Your WebSocket backend should:
-   - Send JSON data every **~7 seconds** (configurable)
-   - Use the `AgentInsight` JSON schema (see below)
-   - Send complete data updates (dashboard will handle all transitions)
+## Backend Requirements
 
-## JSON Schema
+### API Endpoint Setup
+
+Your backend needs to:
+- Provide a REST API endpoint (GET request)
+- Return JSON data in the specified format below
+- Support CORS if frontend and backend are on different domains
+
+### Required API Response Format
+
+Your API must return data in this exact structure:
 
 ```json
 {
-  "type": "AgentInsight",
-  "version": "1.1",
-  "meta": {
-    "timestamp": "2025-10-01T18:45:00Z",
-    "game_id": "NYY@BOS-20251001",
-    "seq_no": 142
-  },
-  "ctx": {
-    "inning": 7,
-    "half": "Top",
-    "outs": 1,
-    "bases": "1B-3B",
-    "count": "2-2",
-    "score": { "home": 4, "away": 5 },
-    "batting_team": "AWAY",
-    "home_team": "BOS",
-    "away_team": "NYY",
-    "batter": { "id": 592450, "name": "Aaron Judge", "hand": "R", "pos": "RF", "slot": 2 },
-    "pitcher": { "id": 605483, "name": "Tanner Houck", "hand": "R" }
-  },
-  "conds": {
-    "weather": {
-      "temp_f": 68,
-      "humidity_pct": 55,
-      "wind_mph": 8,
-      "wind_dir": "LF→RF",
-      "precip_prob": 0.1,
-      "roof": "open"
+  "timestamp": "2025-10-27T19:50:12.902422",
+  "llm_response": {
+    "type": "AgentInsight",
+    "version": "1.1",
+    "meta": {
+      "timestamp": "2025-10-27T19:50:12Z",
+      "game_id": "NYY@NYM-20250517",
+      "seq_no": 4
     },
-    "pitch": {
-      "ball_grip": "normal",
-      "mound": "good",
-      "visibility": "twilight",
-      "wind_effect": "cross"
-    }
-  },
-  "preds": {
-    "pa": {
-      "strikeout": 0.28,
-      "walk_hbp": 0.12,
-      "ball_in_play": 0.60
+    "ctx": {
+      "inning": 1,
+      "half": "Top",
+      "outs": 0,
+      "bases": "---",
+      "count": "0-0",
+      "score": { "home": 0, "away": 0 },
+      "batting_team": "AWAY",
+      "home_team": "NYY",
+      "away_team": "NYM",
+      "batter": { "id": 0, "name": "Player Name", "hand": "R", "pos": "1B", "slot": 0 },
+      "pitcher": { "id": 0, "name": "Pitcher Name", "hand": "R" }
     },
-    "p_hit_given_bip": 0.32,
-    "re_delta_if_reach": 0.85,
-    "re_delta_if_out": -0.45,
-    "wp_now": 0.54
+    "conds": {
+      "weather": {
+        "temp_f": 75,
+        "humidity_pct": 60,
+        "wind_mph": 8,
+        "wind_dir": "LF→RF",
+        "precip_prob": 0.1,
+        "roof": "open"
+      },
+      "pitch": {
+        "ball_grip": "normal",
+        "mound": "good",
+        "visibility": "day",
+        "wind_effect": "neutral"
+      }
+    },
+    "preds": {
+      "pa": {
+        "strikeout": 0.25,
+        "walk_hbp": 0.1,
+        "ball_in_play": 0.65
+      },
+      "p_hit_given_bip": 0.3,
+      "re_delta_if_reach": 0.45,
+      "re_delta_if_out": -0.25,
+      "wp_now": 0.52
+    },
+    "ins": {
+      "batter_strengths": [],
+      "batter_weaknesses": [],
+      "pitcher_strengths": [],
+      "pitcher_weaknesses": []
+    },
+    "suggest": {
+      "pitch": "four-seam",
+      "location": "up-away",
+      "confidence": 0.7,
+      "why": "Recommendation reason"
+    },
+    "past": {
+      "h2h": { "hits": 0, "pa": 0, "note": "" },
+      "recent10": { "obp": 0.0, "slg": 0.0 }
+    },
+    "clips": [],
+    "text": "Play-by-play commentary text"
   },
-  "ins": {
-    "batter_strengths": ["Pull power vs RHP", "Excellent eye on pitches up"],
-    "batter_weaknesses": ["Sweepers low-away", "Two-strike sliders"],
-    "pitcher_strengths": ["Sinker induces weak contact", "Two-strike splitter whiffs ~38%"],
-    "pitcher_weaknesses": ["Hangs sliders when tired", "Struggles vs power lefties"]
-  },
-  "suggest": {
-    "pitch": "splitter",
-    "location": "down-away",
-    "confidence": 0.72,
-    "why": "Judge chases splitters down-away 42% of the time in 2-strike counts"
-  },
-  "past": {
-    "h2h": { "hits": 3, "pa": 12, "note": "small sample" },
-    "recent10": { "obp": 0.385, "slg": 0.624 }
-  },
-  "clips": [
-    {
-      "player_id": 592450,
-      "title": "Judge HR vs Houck Slider",
-      "url": "https://youtube.com/watch?v=example1",
-      "start_s": 15,
-      "end_s": 30,
-      "source": "youtube",
-      "ts": "2025-09-15T19:22:00Z"
-    }
-  ],
-  "text": "Judge (2-2 count, runners on corners) faces Houck's splitter—chases it 42% in 2-strike situations."
+  "success": true,
+  "error": null
 }
 ```
 
-## Features
+The dashboard will automatically extract `llm_response` and use it to update all components.
 
-### Automatic Updates
-- Dashboard automatically refreshes when new data arrives
-- Smooth transitions between data states
-- Visual "Updating..." indicator when new data is received
-- No manual refresh needed
+## Example API Server (Python FastAPI)
 
-### Connection Management
-- Auto-reconnection on connection loss (up to 10 attempts)
-- Real-time connection status in header
-- Toast notifications for connection events
-- Graceful fallback to demo data when disconnected
+```python
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
+from datetime import datetime
 
-### Update Frequency
-The recommended update frequency is **~7 seconds** to balance between:
-- Real-time responsiveness
-- Server load
-- Smooth user experience
+app = FastAPI()
 
-You can adjust this in your backend based on your needs.
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure appropriately for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-## Testing
+@app.get("/api/game-data")
+async def get_game_data():
+    # Your logic to fetch current game data from database
+    game_data = {
+        "type": "AgentInsight",
+        "version": "1.1",
+        "meta": {
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "game_id": "NYY@NYM-20250517",
+            "seq_no": 4
+        },
+        "ctx": {
+            "inning": 1,
+            "half": "Top",
+            "outs": 0,
+            # ... rest of your game context
+        },
+        # ... rest of your data
+    }
+    
+    return {
+        "timestamp": datetime.utcnow().isoformat(),
+        "llm_response": game_data,
+        "success": True,
+        "error": None
+    }
 
-### Development
-```bash
-# Start your WebSocket server on localhost:8080
-# Make sure it sends data in the correct JSON format
-# Update WEBSOCKET_URL in src/pages/Index.tsx
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
-### Demo Mode
-If `WEBSOCKET_URL` is empty, the dashboard will display dummy data automatically, allowing you to see the layout and design before connecting your backend.
+## Example API Server (Node.js Express)
 
-## Connection States
+```javascript
+const express = require('express');
+const cors = require('cors');
 
-1. **Disconnected (Demo Mode)** - Shows dummy data with connection guide
-2. **Connecting** - Attempts to establish connection
-3. **Connected** - Live data streaming, shows real-time updates
-4. **Reconnecting** - Automatically attempts to reconnect on disconnect
+const app = express();
+app.use(cors()); // Enable CORS
+
+app.get('/api/game-data', (req, res) => {
+  // Your logic to fetch current game data from database
+  const gameData = {
+    type: "AgentInsight",
+    version: "1.1",
+    meta: {
+      timestamp: new Date().toISOString(),
+      game_id: "NYY@NYM-20250517",
+      seq_no: Math.floor(Math.random() * 1000)
+    },
+    ctx: {
+      inning: 1,
+      half: "Top",
+      outs: 0,
+      // ... rest of your game context
+    },
+    // ... rest of your data
+  };
+  
+  res.json({
+    timestamp: new Date().toISOString(),
+    llm_response: gameData,
+    success: true,
+    error: null
+  });
+});
+
+app.listen(8000, () => {
+  console.log('API server running on port 8000');
+});
+```
+
+## How It Works
+
+1. **Polling**: Dashboard polls your API endpoint at regular intervals (default 7 seconds)
+2. **Data Extraction**: Automatically extracts `llm_response` from API response
+3. **Auto-Update**: Components re-render with new data automatically
+4. **Error Handling**: Shows connection status and error messages in UI
+5. **Fallback**: Uses dummy data if no API URL is configured
 
 ## Troubleshooting
 
-### WebSocket Connection Fails
-- Check if your backend is running
-- Verify the WebSocket URL is correct
+### Connection Issues
+
+**Problem**: Dashboard shows "Disconnected"
+- Check if your API server is running
+- Verify the URL is correct (http:// for local, https:// for production)
 - Check browser console for error messages
-- Ensure CORS is properly configured on your backend
+- Test the endpoint directly in browser or with curl
+
+**Problem**: CORS errors
+- Add CORS middleware to your backend
+- Configure `allow_origins` appropriately
+- Ensure your API returns proper CORS headers
 
 ### Data Not Updating
-- Verify backend is sending data every ~7 seconds
-- Check JSON format matches the schema
+- Verify API returns data in correct format
+- Check JSON structure matches expected format
 - Look for parsing errors in browser console
-- Verify all required fields are present
+- Verify `success: true` in API response
 
-### Performance Issues
-- Consider increasing update interval (>7 seconds)
-- Optimize JSON payload size
-- Check network latency
-- Monitor browser memory usage
+### Testing Your API
 
-## Example WebSocket Server (Node.js)
+Test your API endpoint:
+```bash
+# Using curl
+curl http://localhost:8000/api/game-data
 
-```javascript
-const WebSocket = require('ws');
-const wss = new WebSocket.Server({ port: 8080 });
-
-wss.on('connection', (ws) => {
-  console.log('Client connected');
-
-  // Send data every 7 seconds
-  const interval = setInterval(() => {
-    const data = {
-      type: "AgentInsight",
-      version: "1.1",
-      // ... rest of your data
-    };
-    ws.send(JSON.stringify(data));
-  }, 7000);
-
-  ws.on('close', () => {
-    clearInterval(interval);
-    console.log('Client disconnected');
-  });
-});
+# Should return JSON with llm_response structure
 ```
+
+## Production Deployment
+
+### Security Considerations
+- Use HTTPS in production
+- Implement authentication/API keys if needed
+- Rate limit API requests
+- Validate data before sending
+- Configure CORS properly (restrict origins)
+
+### Environment Variables
+Consider using environment variables:
+```typescript
+const API_URL = import.meta.env.VITE_API_URL || '';
+const POLLING_INTERVAL = parseInt(import.meta.env.VITE_POLLING_INTERVAL || '7000');
+```
+
+## Performance Tips
+
+- **Polling Interval**: Adjust based on your needs (7-15 seconds recommended)
+- **Caching**: Implement server-side caching for frequently accessed data
+- **Compression**: Enable gzip/brotli compression on your API
+- **CDN**: Use CDN for static assets
+- **Database**: Optimize database queries, use indexing

@@ -10,7 +10,7 @@ import { EnvironmentalConditions } from '@/components/dashboard/EnvironmentalCon
 import { ClipsGallery } from '@/components/dashboard/ClipsGallery';
 import { ViewModeToggle } from '@/components/dashboard/ViewModeToggle';
 import { ConnectionGuide } from '@/components/dashboard/ConnectionGuide';
-import { useWebSocket } from '@/hooks/useWebSocket';
+import { useDataPolling } from '@/hooks/useDataPolling';
 import { useToast } from '@/hooks/use-toast';
 
 interface BaseballData {
@@ -95,21 +95,27 @@ const Index = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   /* ==========================================
-   * WEBSOCKET CONNECTION SETUP
+   * API POLLING SETUP
    * ==========================================
    * 
-   * To connect your WebSocket backend:
+   * To connect your backend API:
    * 
-   * 1. Set WEBSOCKET_URL below to your backend endpoint
+   * 1. Set API_URL below to your backend endpoint
    *    Examples:
-   *    - Local: 'ws://localhost:8080'
-   *    - Production: 'wss://your-backend.com/ws'
+   *    - Local: 'http://localhost:8000/api/game-data'
+   *    - Production: 'https://your-backend.com/api/game-data'
    * 
-   * 2. Your backend should send JSON data every ~7 seconds
-   *    matching the BaseballData interface structure
+   * 2. Set POLLING_INTERVAL (milliseconds, default 7000 = 7 seconds)
    * 
-   * 3. Dashboard will automatically:
-   *    - Connect and reconnect on failures
+   * 3. Your API should return JSON in this format:
+   *    {
+   *      "llm_response": { ...BaseballData structure... },
+   *      "success": true,
+   *      "error": null
+   *    }
+   * 
+   * 4. Dashboard will automatically:
+   *    - Poll API at regular intervals
    *    - Update all components smoothly
    *    - Show connection status
    *    - Fall back to dummy data when disconnected
@@ -117,11 +123,16 @@ const Index = () => {
    * See WEBSOCKET_SETUP.md for detailed instructions
    * ========================================== */
   
-  const WEBSOCKET_URL = ''; // Leave empty to use dummy data
+  const API_URL = ''; // Leave empty to use dummy data
+  const POLLING_INTERVAL = 7000; // 7 seconds
   
-  // WebSocket connection to backend
-  const { data, isConnected, error, lastUpdate } = useWebSocket<BaseballData>(
-    WEBSOCKET_URL
+  // API polling connection to backend
+  const { data, isConnected, error, lastUpdate } = useDataPolling<BaseballData>(
+    API_URL,
+    { 
+      interval: POLLING_INTERVAL,
+      enabled: !!API_URL // Only poll if URL is provided
+    }
   );
 
   // Dummy data for development
@@ -246,13 +257,13 @@ const Index = () => {
 
   // Show success toast when connection is established
   useEffect(() => {
-    if (isConnected && WEBSOCKET_URL) {
+    if (isConnected && API_URL) {
       toast({
         title: "Connected",
         description: "Live data stream active",
       });
     }
-  }, [isConnected, toast, WEBSOCKET_URL]);
+  }, [isConnected, toast, API_URL]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -310,8 +321,8 @@ const Index = () => {
 
             {/* Right Column - Conditions & Clips */}
             <div className="lg:col-span-3 space-y-6">
-              {!isConnected && !WEBSOCKET_URL && <ConnectionGuide />}
-              <EnvironmentalConditions 
+              {!isConnected && !API_URL && <ConnectionGuide />}
+              <EnvironmentalConditions
                 weather={displayData?.conds?.weather}
                 pitch={displayData?.conds?.pitch}
               />
