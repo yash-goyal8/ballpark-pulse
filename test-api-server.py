@@ -34,6 +34,20 @@ async def get_game_data():
     # Get current data entry
     data = json_lines[current_index]
     
+    # Print to console
+    print(f"\n{'='*60}")
+    print(f"📊 Serving Entry #{current_index + 1} of {len(json_lines)}")
+    print(f"{'='*60}")
+    print(f"Game ID: {data.get('llm_response', {}).get('meta', {}).get('game_id', 'N/A')}")
+    print(f"Timestamp: {data.get('timestamp', 'N/A')}")
+    print(f"Inning: {data.get('llm_response', {}).get('ctx', {}).get('inning', 'N/A')} - {data.get('llm_response', {}).get('ctx', {}).get('half', 'N/A')}")
+    print(f"Count: {data.get('llm_response', {}).get('ctx', {}).get('count', 'N/A')}")
+    print(f"Outs: {data.get('llm_response', {}).get('ctx', {}).get('outs', 'N/A')}")
+    print(f"Score: {data.get('llm_response', {}).get('ctx', {}).get('score', {})}")
+    print(f"Batter: {data.get('llm_response', {}).get('ctx', {}).get('batter', {}).get('name', 'N/A')}")
+    print(f"Pitcher: {data.get('llm_response', {}).get('ctx', {}).get('pitcher', {}).get('name', 'N/A')}")
+    print(f"{'='*60}\n")
+    
     # Move to next entry (loop back to start if at end)
     current_index = (current_index + 1) % len(json_lines)
     
