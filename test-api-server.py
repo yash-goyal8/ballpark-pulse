@@ -46,6 +46,8 @@ async def get_game_data():
     print(f"Score: {data.get('llm_response', {}).get('ctx', {}).get('score', {})}")
     print(f"Batter: {data.get('llm_response', {}).get('ctx', {}).get('batter', {}).get('name', 'N/A')}")
     print(f"Pitcher: {data.get('llm_response', {}).get('ctx', {}).get('pitcher', {}).get('name', 'N/A')}")
+    print(f"\n📦 FULL JSON RESPONSE:")
+    print(json.dumps(data, indent=2))
     print(f"{'='*60}\n")
     
     # Move to next entry (loop back to start if at end)
